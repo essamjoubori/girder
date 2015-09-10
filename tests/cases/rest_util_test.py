@@ -18,6 +18,7 @@
 ###############################################################################
 
 import unittest
+import six
 
 from girder.api import rest
 
@@ -44,7 +45,7 @@ class RestUtilTestCase(unittest.TestCase):
             True: True
         }
 
-        for input, output in expect.items():
+        for input, output in six.viewitems(expect):
             params = {
                 'some_key': input
             }
@@ -55,6 +56,14 @@ class RestUtilTestCase(unittest.TestCase):
     def testGetApiUrl(self):
         url = 'https://localhost/thing/api/v1/hello/world?foo=bar#test'
         self.assertEqual(rest.getApiUrl(url), 'https://localhost/thing/api/v1')
+
+        parts = rest.getUrlParts(url)
+        self.assertEqual(parts.path, '/thing/api/v1/hello/world')
+        self.assertEqual(rest.getApiUrl(parts.path), '/thing/api/v1')
+        self.assertEqual(parts.port, None)
+        self.assertEqual(parts.hostname, 'localhost')
+        self.assertEqual(parts.query, 'foo=bar')
+        self.assertEqual(parts.fragment, 'test')
 
         url = 'https://localhost/girder#users'
         self.assertRaises(Exception, rest.getApiUrl, url=url)
